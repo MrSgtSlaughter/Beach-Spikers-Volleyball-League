@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏐 Beach Spikers League</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;600;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{--cyan:#00f5ff;--orange:#ff6b00;--yellow:#ffe600;--pink:#ff2d78;--green:#39ff14;--deep:#050a1a;--card:rgba(10,22,54,0.9);--border:rgba(255,255,255,0.07);--east:#ff2d78;--west:#00f5ff;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow Condensed',sans-serif;background:var(--deep);color:#fff;min-height:100vh;overflow-x:hidden}
+.bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 70% 50% at 15% 85%,rgba(255,45,120,.1) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 85% 15%,rgba(0,245,255,.1) 0%,transparent 60%),linear-gradient(180deg,#020812,#050a1a);pointer-events:none}
+.bg::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(0,245,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,.03) 1px,transparent 1px);background-size:44px 44px;animation:gp 10s ease-in-out infinite}
+.bg::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 4px)}
+@keyframes gp{0%,100%{opacity:.5}50%{opacity:1}}
+.wave{height:5px;background:linear-gradient(90deg,var(--pink),var(--orange),var(--yellow),var(--green),var(--cyan),var(--pink));background-size:300%;animation:ws 3s linear infinite}
+@keyframes ws{to{background-position:300% 0}}
+
+/* HEADER */
+header{position:relative;z-index:10;text-align:center;padding:34px 20px 14px}
+.hbadge{display:inline-block;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:4px;color:var(--cyan);border:1px solid rgba(0,245,255,.35);padding:3px 14px;margin-bottom:12px}
+h1{font-family:'Black Ops One',cursive;font-size:clamp(38px,7vw,82px);line-height:.9;background:linear-gradient(135deg,#fff 0%,var(--yellow) 40%,var(--orange) 70%,var(--pink) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:tp 4s ease-in-out infinite}
+@keyframes tp{0%,100%{filter:drop-shadow(0 0 18px rgba(255,107,0,.4))}50%{filter:drop-shadow(0 0 46px rgba(255,107,0,.75))}}
+.sub{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:5px;color:rgba(255,255,255,.38);margin-top:6px}
+
+/* NAV TABS */
+.nav-tabs{position:relative;z-index:10;display:flex;justify-content:center;gap:4px;padding:16px 20px 0;max-width:700px;margin:0 auto}
+.nav-btn{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:3px;padding:10px 24px;border-radius:8px 8px 0 0;border:1px solid var(--border);border-bottom:none;background:rgba(255,255,255,.04);color:rgba(255,255,255,.4);cursor:pointer;transition:all .2s;white-space:nowrap}
+.nav-btn:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7)}
+.nav-btn.active{background:var(--card);color:#fff;border-color:rgba(255,255,255,.12)}
+.tab-line{height:1px;background:rgba(255,255,255,.08);position:relative;z-index:10}
+.tab-panel{display:none;position:relative;z-index:10;max-width:1400px;margin:0 auto;padding:24px 20px 60px}
+.tab-panel.active{display:block}
+
+/* STANDINGS */
+.standings-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:800px){.standings-grid{grid-template-columns:1fr}}
+.div-panel{background:var(--card);border-radius:14px;overflow:hidden;border:1px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.div-head{padding:16px 20px 12px;position:relative;overflow:hidden}
+.div-head.east{background:linear-gradient(135deg,rgba(255,45,120,.28),rgba(255,107,0,.15));border-bottom:2px solid var(--east)}
+.div-head.west{background:linear-gradient(135deg,rgba(0,245,255,.25),rgba(57,255,20,.08));border-bottom:2px solid var(--west)}
+.div-head::after{content:attr(data-lbl);position:absolute;right:-6px;top:50%;transform:translateY(-50%) rotate(-6deg);font-family:'Black Ops One',cursive;font-size:56px;opacity:.055;pointer-events:none}
+.div-title{font-family:'Black Ops One',cursive;font-size:22px;letter-spacing:2px}
+.div-title.east{color:var(--east);text-shadow:0 0 16px var(--east)}.div-title.west{color:var(--west);text-shadow:0 0 16px var(--west)}
+.div-sub{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:3px;opacity:.4;margin-top:3px}
+.tbl-head{display:grid;grid-template-columns:24px 1fr 40px 40px 50px 50px 68px;gap:4px;padding:8px 14px 6px;font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:rgba(255,255,255,.28);border-bottom:1px solid rgba(255,255,255,.06)}
+.team-row{display:grid;grid-template-columns:24px 1fr 40px 40px 50px 50px 68px;gap:4px;align-items:center;padding:8px 14px;border-bottom:1px solid rgba(255,255,255,.032);transition:background .2s;border-radius:6px;margin:1px 4px}
+.team-row:hover{background:rgba(255,255,255,.05)}
+.team-row.r1{background:linear-gradient(90deg,rgba(255,230,0,.08),transparent)}
+.team-row.r2{background:linear-gradient(90deg,rgba(180,180,180,.05),transparent)}
+.team-row.r3{background:linear-gradient(90deg,rgba(180,100,50,.05),transparent)}
+.rk{font-family:'Orbitron',monospace;font-size:10px;font-weight:900;text-align:center;color:rgba(255,255,255,.22)}
+.rk.g{color:var(--yellow)}.rk.s{color:#ccc}.rk.b{color:#cd7f32}
+.tinfo{display:flex;align-items:center;gap:8px;overflow:hidden;min-width:0}
+.mico{font-size:18px;flex-shrink:0}
+.tname{font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tplayers{font-size:9px;color:rgba(255,255,255,.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc{text-align:center;font-family:'Orbitron',monospace;font-size:12px;font-weight:700}
+.sc.w{color:var(--green)}.sc.l{color:var(--pink)}.sc.p{color:var(--yellow);font-size:10px}.sc.pts{color:var(--cyan)}
+.wlc{display:flex;align-items:center;gap:2px;justify-content:center}
+.wb{width:19px;height:19px;border-radius:50%;border:none;font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.wp{background:var(--green);color:#000}.wp:hover{transform:scale(1.25);box-shadow:0 0 8px var(--green)}
+.wm{background:rgba(57,255,20,.15);color:var(--green);border:1px solid var(--green)}.wm:hover{transform:scale(1.2)}
+.lp{background:var(--pink);color:#fff}.lp:hover{transform:scale(1.25);box-shadow:0 0 8px var(--pink)}
+.lm{background:rgba(255,45,120,.15);color:var(--pink);border:1px solid var(--pink)}.lm:hover{transform:scale(1.2)}
+.overall-wrap{max-width:660px;margin:22px auto 0}
+.ov-title{font-family:'Black Ops One',cursive;font-size:21px;text-align:center;letter-spacing:3px;background:linear-gradient(90deg,var(--yellow),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px}
+.ov-row{display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:8px;margin-bottom:4px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.04);transition:background .2s}
+.ov-row:hover{background:rgba(255,255,255,.07)}
+.ov-rk{font-family:'Orbitron',monospace;font-size:14px;font-weight:900;width:26px;text-align:center;flex-shrink:0}
+.ov-mc{font-size:20px;flex-shrink:0}.ov-nm{font-weight:800;font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ov-rec{font-family:'Orbitron',monospace;font-size:12px}
+.ov-bar-w{width:65px;height:5px;background:rgba(255,255,255,.09);border-radius:3px;overflow:hidden;flex-shrink:0}
+.ov-bar{height:100%;border-radius:3px;transition:width .5s ease}
+
+/* SCHEDULE - Week Picker */
+.week-picker-wrap{margin-bottom:24px}
+.week-picker-label{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;color:rgba(255,255,255,.35);margin-bottom:12px;text-align:center}
+.week-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-width:700px;margin:0 auto 24px}
+@media(max-width:600px){.week-grid{grid-template-columns:repeat(4,1fr)}}
+.week-pill{padding:10px 6px;border-radius:9px;border:1px solid var(--border);background:rgba(255,255,255,.04);cursor:pointer;text-align:center;transition:all .18s;position:relative}
+.week-pill:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.15);transform:translateY(-1px)}
+.week-pill.active-week{background:rgba(0,245,255,.1);border-color:var(--cyan);box-shadow:0 0 14px rgba(0,245,255,.15)}
+
+.week-pill.has-games{border-color:rgba(57,255,20,.2)}
+.wp-num{font-family:'Black Ops One',cursive;font-size:16px;line-height:1;color:#fff}
+.week-pill.active-week .wp-num{color:var(--cyan)}
+.week-pill.break-pill .wp-num{color:var(--yellow)}
+.wp-sub{font-family:'Orbitron',monospace;font-size:7px;letter-spacing:1px;color:rgba(255,255,255,.3);margin-top:3px}
+.week-pill.active-week .wp-sub{color:var(--cyan)}
+.wp-dot{position:absolute;top:5px;right:5px;width:5px;height:5px;border-radius:50%;background:var(--green)}
+
+/* Selected week display */
+.week-display{background:var(--card);border-radius:14px;border:1px solid var(--border);overflow:hidden;margin-bottom:20px}
+.week-display-head{padding:20px 24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.wd-icon{font-size:48px;flex-shrink:0}
+.wd-info{flex:1;min-width:180px}
+.wd-title{font-family:'Black Ops One',cursive;font-size:32px;letter-spacing:3px;color:var(--cyan);text-shadow:0 0 20px rgba(0,245,255,.4);line-height:1}
+.wd-date{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:3px;color:rgba(255,255,255,.45);margin-top:5px}
+.wd-note{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.25);margin-top:4px}
+.wd-progress{flex-shrink:0;display:flex;align-items:center;gap:12px}
+.wd-prog-text{text-align:right}
+.wd-played{font-family:'Orbitron',monospace;font-size:28px;font-weight:900;color:var(--green);line-height:1}
+.wd-total{font-family:'Orbitron',monospace;font-size:10px;color:rgba(255,255,255,.3);letter-spacing:2px}
+.wd-prog-bar-wrap{width:100%;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-top:8px;border-left:none;border-right:none;padding:0 24px 16px}
+
+
+
+
+/* Courts layout */
+.courts-layout{display:grid;grid-template-columns:1fr 1fr;gap:0;padding:0 0 4px}
+@media(max-width:680px){.courts-layout{grid-template-columns:1fr}}
+.court-col{display:flex;flex-direction:column;gap:0}
+.court-header{display:flex;align-items:center;gap:10px;padding:14px 20px;position:sticky;top:0;z-index:2}
+.court-header.c1{background:linear-gradient(90deg,rgba(0,245,255,.12),rgba(0,245,255,.04));border-bottom:2px solid var(--cyan);border-right:1px solid rgba(255,255,255,.05)}
+.court-header.c2{background:linear-gradient(90deg,rgba(255,45,120,.12),rgba(255,45,120,.04));border-bottom:2px solid var(--pink)}
+.court-icon{font-size:26px}
+.court-name{font-family:'Black Ops One',cursive;font-size:20px;letter-spacing:3px}
+.court-name.c1{color:var(--cyan);text-shadow:0 0 14px rgba(0,245,255,.5)}
+.court-name.c2{color:var(--pink);text-shadow:0 0 14px rgba(255,45,120,.5)}
+.court-games-count{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3);margin-left:auto}
+.game-slot{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04)}
+.court-col:first-child .game-slot{border-right:1px solid rgba(255,255,255,.05)}
+.slot-label{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.slot-ordinal{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:3px 8px;border-radius:4px;font-weight:700}
+.slot-ordinal.c1-ord{background:rgba(0,245,255,.1);color:var(--cyan);border:1px solid rgba(0,245,255,.2)}
+.slot-ordinal.c2-ord{background:rgba(255,45,120,.1);color:var(--pink);border:1px solid rgba(255,45,120,.2)}
+.slot-line{flex:1;height:1px;background:rgba(255,255,255,.05)}
+
+/* Game cards */
+.games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;padding:0 16px 16px}
+.game-card{background:rgba(255,255,255,.03);border-radius:11px;border:1px solid var(--border);overflow:hidden;transition:transform .18s,box-shadow .18s;position:relative}
+.game-card:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,.4)}
+.game-card.done{border-color:rgba(57,255,20,.22);background:rgba(57,255,20,.02)}
+.game-card.cross-game{border-top:2px solid rgba(255,230,0,.45)}
+.game-card.east-game{border-top:2px solid rgba(255,45,120,.4)}
+.game-card.west-game{border-top:2px solid rgba(0,245,255,.4)}
+.gc-inner{padding:12px}
+.gnum{position:absolute;top:6px;right:8px;font-family:'Orbitron',monospace;font-size:8px;color:rgba(255,255,255,.18);letter-spacing:1px}
+.gtype{position:absolute;top:6px;left:8px;font-family:'Orbitron',monospace;font-size:7px;letter-spacing:1px;padding:2px 5px;border-radius:3px}
+.gtype.cross{background:rgba(255,230,0,.1);color:var(--yellow)}
+.gtype.east{background:rgba(255,45,120,.1);color:var(--east)}
+.gtype.west{background:rgba(0,245,255,.1);color:var(--west)}
+.gc-matchup{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:20px 0 10px}
+.gc-team{flex:1;text-align:center;min-width:0;transition:opacity .2s}
+.gc-team.winner .gc-tname{color:var(--green);text-shadow:0 0 10px rgba(57,255,20,.3)}
+.gc-team.winner .gc-mc{filter:drop-shadow(0 0 8px rgba(57,255,20,.5))}
+.gc-team.loser{opacity:.35}
+.gc-mc{font-size:28px;display:block;margin-bottom:4px}
+.gc-tname{font-weight:800;font-size:11px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.gc-vs{font-family:'Black Ops One',cursive;font-size:13px;color:rgba(255,255,255,.2);flex-shrink:0}
+.gc-vs.done-ico{color:var(--green);font-size:17px;text-shadow:0 0 10px var(--green)}
+.gc-winner{text-align:center;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:1px;color:var(--green);padding:2px 0 4px}
+.gc-btns{display:flex;gap:5px;margin-top:2px}
+.gc-btn{flex:1;padding:7px 4px;border:none;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;cursor:pointer;transition:all .15s;letter-spacing:.5px}
+.gc-btn.hb{background:rgba(0,245,255,.1);color:var(--cyan);border:1px solid rgba(0,245,255,.2)}.gc-btn.hb:hover{background:rgba(0,245,255,.22);box-shadow:0 0 8px rgba(0,245,255,.2)}
+.gc-btn.ab{background:rgba(255,45,120,.1);color:var(--pink);border:1px solid rgba(255,45,120,.2)}.gc-btn.ab:hover{background:rgba(255,45,120,.22);box-shadow:0 0 8px rgba(255,45,120,.2)}
+.gc-change{width:100%;padding:5px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:5px;color:rgba(255,255,255,.32);font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;cursor:pointer;margin-top:6px;transition:all .15s}
+.gc-change:hover{background:rgba(255,255,255,.1);color:#fff}
+
+/* TEAMS */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:12px}
+.team-card{background:var(--card);border-radius:13px;padding:16px 12px 12px;border:1px solid var(--border);text-align:center;transition:transform .2s,box-shadow .2s;position:relative}
+.team-card:hover{transform:translateY(-4px);box-shadow:0 14px 32px rgba(0,0,0,.4)}
+.team-card.ec{border-top:3px solid var(--east)}.team-card.wc{border-top:3px solid var(--west)}
+.tc-mc{font-size:40px;margin-bottom:6px;display:block;animation:floatM 3s ease-in-out infinite;animation-delay:var(--d,0s)}
+@keyframes floatM{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.tc-name{font-family:'Black Ops One',cursive;font-size:12px;line-height:1.2;margin-bottom:3px}
+.tc-mname{font-size:9px;color:rgba(255,255,255,.22);font-family:'Orbitron',monospace;letter-spacing:1px;margin-bottom:6px}
+.tc-players{font-size:11px;color:rgba(255,255,255,.38);line-height:1.5;margin-bottom:9px}
+.tc-rec{font-family:'Orbitron',monospace;font-size:17px;font-weight:900;display:flex;justify-content:center;align-items:center;gap:7px}
+.tc-w{color:var(--green)}.tc-l{color:var(--pink)}.tc-sep{color:rgba(255,255,255,.2)}
+.tc-badge{position:absolute;top:7px;right:7px;font-family:'Orbitron',monospace;font-size:7px;letter-spacing:1px;padding:2px 5px;border-radius:3px}
+.tc-badge.eb{background:rgba(255,45,120,.16);color:var(--east)}.tc-badge.wb{background:rgba(0,245,255,.16);color:var(--west)}
+
+.reset-btn{display:block;margin:22px auto 0;background:rgba(255,45,120,.1);color:var(--pink);border:1px solid rgba(255,45,120,.35);font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;padding:8px 22px;border-radius:6px;cursor:pointer;transition:all .2s}
+.reset-btn:hover{background:rgba(255,45,120,.22);box-shadow:0 0 14px rgba(255,45,120,.22)}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(5,10,28,.96);border:1px solid var(--cyan);color:var(--cyan);font-family:'Orbitron',monospace;font-size:11px;letter-spacing:2px;padding:10px 22px;border-radius:8px;z-index:1000;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.ball{position:fixed;font-size:24px;opacity:.05;pointer-events:none;z-index:1;animation:bf linear infinite}
+@keyframes bf{0%{transform:translateY(110vh) rotate(0deg);opacity:0}10%{opacity:.05}90%{opacity:.05}100%{transform:translateY(-10vh) rotate(360deg);opacity:0}}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="wave"></div>
+<div class="ball" style="left:5%;animation-duration:19s;animation-delay:0s">🏐</div>
+<div class="ball" style="left:23%;animation-duration:25s;animation-delay:5s">🏐</div>
+<div class="ball" style="left:50%;animation-duration:21s;animation-delay:10s">🏐</div>
+<div class="ball" style="left:74%;animation-duration:27s;animation-delay:3s">🏐</div>
+<div class="ball" style="left:91%;animation-duration:22s;animation-delay:14s">🏐</div>
+
+<header>
+  <div class="hbadge">🏐 OFFICIAL LEAGUE DASHBOARD 🏐</div>
+  <h1>BEACH<br>SPIKERS</h1>
+  <div class="sub">SEASON 1 · MR. SLAUGHTER</div>
+  <div style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3)">
+    <span id="sync-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.3);transition:background .4s"></span>
+    SYNCED TO FIREBASE
+  </div>
+</header>
+<div class="wave"></div>
+
+<div class="nav-tabs">
+  <button class="nav-btn active" onclick="switchTab('standings')">📊 STANDINGS</button>
+  <button class="nav-btn" onclick="switchTab('schedule')">📅 SCHEDULE</button>
+  <button class="nav-btn" onclick="switchTab('teams')">👥 TEAMS</button>
+</div>
+<div class="tab-line"></div>
+
+<!-- STANDINGS -->
+<div class="tab-panel active" id="tab-standings">
+  <div class="standings-grid">
+    <div class="div-panel">
+      <div class="div-head east" data-lbl="EAST">
+        <div class="div-title east">🔥 EASTERN DIVISION</div>
+        <div class="div-sub">ATLANTIC CONFERENCE</div>
+      </div>
+      <div style="padding:0 4px 4px">
+        <div class="tbl-head"><span>#</span><span>TEAM</span><span style="text-align:center">W</span><span style="text-align:center">L</span><span style="text-align:center">PCT</span><span style="text-align:center">PTS</span><span style="text-align:center">ADJ</span></div>
+        <div id="east-std"></div>
+      </div>
+    </div>
+    <div class="div-panel">
+      <div class="div-head west" data-lbl="WEST">
+        <div class="div-title west">🌊 WESTERN DIVISION</div>
+        <div class="div-sub">PACIFIC CONFERENCE</div>
+      </div>
+      <div style="padding:0 4px 4px">
+        <div class="tbl-head"><span>#</span><span>TEAM</span><span style="text-align:center">W</span><span style="text-align:center">L</span><span style="text-align:center">PCT</span><span style="text-align:center">PTS</span><span style="text-align:center">ADJ</span></div>
+        <div id="west-std"></div>
+      </div>
+    </div>
+  </div>
+  <div class="overall-wrap">
+    <div class="ov-title">🏆 OVERALL STANDINGS</div>
+    <div id="overall-std"></div>
+  </div>
+  <button class="reset-btn" onclick="resetAll()">⚠ RESET ALL RECORDS & RESULTS</button>
+</div>
+
+<!-- SCHEDULE -->
+<div class="tab-panel" id="tab-schedule">
+  <div class="week-picker-wrap">
+    <div class="week-picker-label">SELECT A WEEK</div>
+    <div class="week-grid" id="week-grid"></div>
+  </div>
+  <div id="week-display"></div>
+</div>
+
+<!-- TEAMS -->
+<div class="tab-panel" id="tab-teams">
+  <div class="cards-grid" id="team-cards"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<script>
+// ─── FIREBASE ───
+const firebaseConfig = {
+  apiKey: "AIzaSyBxpmz99TlJjJ64u4k5L-5Xfgzi_t9doQs",
+  authDomain: "beach-spiker-league.firebaseapp.com",
+  databaseURL: "https://beach-spiker-league-default-rtdb.firebaseio.com",
+  projectId: "beach-spiker-league",
+  storageBucket: "beach-spiker-league.firebasestorage.app",
+  messagingSenderId: "489015032192",
+  appId: "1:489015032192:web:5cb86310108cf16ff6e965"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const STATE_REF = db.ref('league/state');
+
+function saveToFirebase() {
+  const payload = {
+    records: records,
+    gameResults: gameResults,
+    savedAt: Date.now()
+  };
+  STATE_REF.set(payload).then(() => {
+    const dot = document.getElementById('sync-dot');
+    if(dot){ dot.style.background='var(--green)'; setTimeout(()=>dot.style.background='rgba(255,255,255,.3)',1500); }
+  }).catch(e => console.error('Firebase save error:', e));
+}
+
+function loadFromFirebase(callback) {
+  STATE_REF.once('value').then(snap => {
+    const data = snap.val();
+    if(data) {
+      // Restore records
+      if(data.records) {
+        Object.keys(data.records).forEach(id => {
+          if(records[id] !== undefined) records[id] = data.records[id];
+        });
+      }
+      // Restore gameResults
+      if(data.gameResults) {
+        Object.keys(data.gameResults).forEach(k => { gameResults[k] = data.gameResults[k]; });
+      }
+    }
+    callback();
+  }).catch(e => { console.error('Firebase load error:', e); callback(); });
+}
+
+// ─── TEAMS ───
+const TEAMS = [
+  {id:0,name:'Ace Your Face',      players:'Raneem & Kenzie',       mascot:'🐆',mascotName:'Cheetah',      div:'east'},
+  {id:1,name:'Court Queens',       players:'Hadley F. & Violet I.', mascot:'👑',mascotName:'The Crown',    div:'east'},
+  {id:2,name:'Double A',           players:'Adriana & Addy',        mascot:'💎',mascotName:'Double A',     div:'east'},
+  {id:3,name:'Oractuus',           players:'Aleah & Giuliana',      mascot:'🌵',mascotName:'Tuff Oractuus',div:'east'},
+  {id:4,name:'Set It & Forget It', players:'Jayla & Havien',        mascot:'🌊',mascotName:'Ms. Set',      div:'east'},
+  {id:5,name:'Shark Attack',       players:'Kaylee & Manissa',      mascot:'🦈',mascotName:'Shark',        div:'east'},
+  {id:6,name:'Soft Launch',        players:'Nora W. & Brooklyn B.', mascot:'🐬',mascotName:'Triple T',     div:'east'},
+  {id:7,name:'The Strikers',       players:'Brycen R. & Colin Y.',  mascot:'🔥',mascotName:'Striker',      div:'west'},
+  {id:8,name:'The Spikers',        players:'Mihir B. & Aiden C.',   mascot:'💣',mascotName:'Bomb Spiker',  div:'west'},
+  {id:9,name:'The Acers',          players:'Kaden & Muntathar',     mascot:'🦅',mascotName:'Pegasus',      div:'west'},
+  {id:10,name:'Sandstorms',        players:'KaDen & Makenna',       mascot:'🌪️',mascotName:'Sandstorm',    div:'west'},
+  {id:11,name:"I Don't Give aDam", players:'Adam & Zach',           mascot:'🦫',mascotName:'Beaver',       div:'west'},
+  {id:12,name:'The Aura Farmers',  players:'Ryker & Jojo',          mascot:'🧑‍🌾',mascotName:'Farmer',       div:'west'},
+  {id:13,name:'OC Ballers',        players:'Jake & Luca',           mascot:'🏀',mascotName:'Owen Conner',  div:'west'},
+];
+
+
+// Generate round-robin using circle method, 7 games per round, 13 rounds
+function genRoundRobin() {
+  const n = 14;
+  const rotating = [1,2,3,4,5,6,7,8,9,10,11,12,13];
+  const rounds = [];
+  for(let r = 0; r < 13; r++) {
+    const circle = [0, ...rotating];
+    const games = [];
+    for(let i = 0; i < n/2; i++) games.push([circle[i], circle[n-1-i]]);
+    rotating.unshift(rotating.pop());
+    rounds.push(games);
+  }
+  return rounds;
+}
+
+const ALL_ROUNDS = genRoundRobin(); // 13 rounds × 7 games
+
+// 20 plain weeks, no dates, no spring break
+const WEEKS = [];
+for(let w = 0; w < 10; w++) {
+  WEEKS.push({ label:`WEEK ${w+1}`, games: ALL_ROUNDS[w % 13] });
+}
+const records = {};
+TEAMS.forEach(t => { records[t.id] = {w:0,l:0}; });
+const gameResults = {}; // "weekIdx-gameIdx" => {winner,loser}
+let selectedWeek = 0;
+
+// ─── HELPERS ───
+function getPct(w,l){const g=w+l;if(!g)return'---';return(w/g).toFixed(3).replace('0.','.');}
+function getPctN(w,l){const g=w+l;return g?w/g:0;}
+function getPts(w,l){return w*2+l;}
+function sortTeams(arr){return [...arr].sort((a,b)=>{const ra=records[a.id],rb=records[b.id];const pa=getPctN(ra.w,ra.l),pb=getPctN(rb.w,rb.l);if(pb!==pa)return pb-pa;return rb.w-ra.w;});}
+function gkey(wi,gi){return`${wi}-${gi}`;}
+function weekPlayed(wi){return WEEKS[wi].games.filter((_,gi)=>gameResults[gkey(wi,gi)]).length;}
+
+// ─── GAME RESULT ───
+function setWin(wi, gi, winnerId) {
+  const k = gkey(wi,gi);
+  const [h,a] = WEEKS[wi].games[gi];
+  const loserId = winnerId===h ? a : h;
+  if(gameResults[k]){records[gameResults[k].winner].w--;records[gameResults[k].loser].l--;}
+  gameResults[k]={winner:winnerId,loser:loserId};
+  records[winnerId].w++;records[loserId].l++;
+  renderStandings();updateGameCard(wi,gi);updateTeamCards();updateWeekPill(wi);saveToFirebase();
+  showToast(`${TEAMS[winnerId].mascot} ${TEAMS[winnerId].name} — WIN!`);
+}
+
+function clearResult(wi, gi) {
+  const k = gkey(wi,gi);
+  if(gameResults[k]){records[gameResults[k].winner].w--;records[gameResults[k].loser].l--;delete gameResults[k];}
+  renderStandings();updateGameCard(wi,gi);updateTeamCards();updateWeekPill(wi);saveToFirebase();
+  showToast('🔄 Result cleared');
+}
+
+// ─── STANDINGS ───
+function renderDivStandings(cid, teams) {
+  const sorted = sortTeams(teams);
+  document.getElementById(cid).innerHTML = sorted.map((t,i)=>{
+    const r=records[t.id];
+    const rkCls=i===0?'rk g':i===1?'rk s':i===2?'rk b':'rk';
+    const rowCls=i===0?'team-row r1':i===1?'team-row r2':i===2?'team-row r3':'team-row';
+    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+    return `<div class="${rowCls}">
+      <div class="${rkCls}">${medal||(i+1)}</div>
+      <div class="tinfo"><span class="mico">${t.mascot}</span><div><div class="tname">${t.name}</div><div class="tplayers">${t.players}</div></div></div>
+      <div class="sc w">${r.w}</div><div class="sc l">${r.l}</div>
+      <div class="sc p">${getPct(r.w,r.l)}</div><div class="sc pts">${getPts(r.w,r.l)}</div>
+      <div class="wlc">
+        <button class="wb wp" onclick="adj(${t.id},'w',1)">+</button>
+        <button class="wb wm" onclick="adj(${t.id},'w',-1)">−</button>
+        <button class="wb lp" onclick="adj(${t.id},'l',1)">+</button>
+        <button class="wb lm" onclick="adj(${t.id},'l',-1)">−</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderOverall() {
+  const sorted = sortTeams(TEAMS);
+  const maxW = Math.max(...TEAMS.map(t=>records[t.id].w),1);
+  document.getElementById('overall-std').innerHTML = sorted.map((t,i)=>{
+    const r=records[t.id];const isEast=t.div==='east';
+    const bClr=isEast?'linear-gradient(90deg,var(--east),var(--orange))':'linear-gradient(90deg,var(--west),var(--green))';
+    const bW=Math.round((r.w/maxW)*100);const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+    return `<div class="ov-row">
+      <span class="ov-rk" style="color:${i<3?'var(--yellow)':'rgba(255,255,255,.26)'}">${medal||(i+1)}</span>
+      <span class="ov-mc">${t.mascot}</span><span class="ov-nm">${t.name}</span>
+      <span class="ov-rec" style="color:var(--green)">${r.w}</span>
+      <span style="color:rgba(255,255,255,.22);font-family:'Orbitron',monospace;font-size:10px">-</span>
+      <span class="ov-rec" style="color:var(--pink)">${r.l}</span>
+      <div class="ov-bar-w"><div class="ov-bar" style="width:${bW}%;background:${bClr}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderStandings(){renderDivStandings('east-std',TEAMS.filter(t=>t.div==='east'));renderDivStandings('west-std',TEAMS.filter(t=>t.div==='west'));renderOverall();}
+function adj(id,type,delta){if(type==='w')records[id].w=Math.max(0,records[id].w+delta);else records[id].l=Math.max(0,records[id].l+delta);renderStandings();updateTeamCards();saveToFirebase();}
+
+// ─── GAME CARD ───
+function buildGameCard(wi, gi) {
+  const week = WEEKS[wi];
+  const [h,a] = week.games[gi];
+  const home=TEAMS[h],away=TEAMS[a];
+  const k=gkey(wi,gi);const result=gameResults[k];
+  const isCross=home.div!==away.div;
+  const typeCls=isCross?'cross':home.div;const cardCls=isCross?'cross-game':home.div==='east'?'east-game':'west-game';
+  const typeLabel=isCross?'CROSS-DIV':home.div==='east'?'EAST DIV':'WEST DIV';
+  if(result){
+    const homeWon=result.winner===h;
+    return `<div class="game-card done ${cardCls}" id="gc-${wi}-${gi}">
+      <div class="gc-inner">
+        <span class="gnum">G${gi+1}</span><span class="gtype ${typeCls}">${typeLabel}</span>
+        <div class="gc-matchup">
+          <div class="gc-team ${homeWon?'winner':'loser'}"><span class="gc-mc">${home.mascot}</span><div class="gc-tname">${home.name}</div></div>
+          <div class="gc-vs done-ico">✓</div>
+          <div class="gc-team ${!homeWon?'winner':'loser'}"><span class="gc-mc">${away.mascot}</span><div class="gc-tname">${away.name}</div></div>
+        </div>
+        <div class="gc-winner">🏆 ${TEAMS[result.winner].name.toUpperCase()} WINS</div>
+        <button class="gc-change" onclick="clearResult(${wi},${gi})">🔄 CHANGE RESULT</button>
+      </div></div>`;
+  } else {
+    return `<div class="game-card ${cardCls}" id="gc-${wi}-${gi}">
+      <div class="gc-inner">
+        <span class="gnum">G${gi+1}</span><span class="gtype ${typeCls}">${typeLabel}</span>
+        <div class="gc-matchup">
+          <div class="gc-team"><span class="gc-mc">${home.mascot}</span><div class="gc-tname">${home.name}</div></div>
+          <div class="gc-vs">VS</div>
+          <div class="gc-team"><span class="gc-mc">${away.mascot}</span><div class="gc-tname">${away.name}</div></div>
+        </div>
+        <div class="gc-btns">
+          <button class="gc-btn hb" onclick="setWin(${wi},${gi},${h})">${home.mascot} WIN</button>
+          <button class="gc-btn ab" onclick="setWin(${wi},${gi},${a})">${away.mascot} WIN</button>
+        </div>
+      </div></div>`;
+  }
+}
+
+function updateGameCard(wi,gi){if(wi===selectedWeek)renderWeekDisplay();}
+
+// ─── WEEK PICKER ───
+function renderWeekPicker() {
+  const grid = document.getElementById('week-grid');
+  grid.innerHTML = WEEKS.map((wk,i)=>{
+    const played = weekPlayed(i);
+    const total = wk.games.length;
+    const isSelected = i===selectedWeek;
+    let cls = 'week-pill';
+    if(isSelected) cls += ' active-week';
+    if(played > 0) cls += ' has-games';
+    return `<div class="${cls}" onclick="selectWeek(${i})" id="wpill-${i}">
+      <div class="wp-num">${wk.label.replace('WEEK ','W')}</div>
+      <div class="wp-sub">${played>0 ? played+'/'+total+' DONE' : total+' GAMES'}</div>
+      ${played>0 ? '<div class="wp-dot"></div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function updateWeekPill(wi) {
+  const wk=WEEKS[wi];const played=weekPlayed(wi);const total=wk.games.length;const isSelected=wi===selectedWeek;
+  const el=document.getElementById(`wpill-${wi}`);if(!el)return;
+  let cls='week-pill';if(isSelected)cls+=' active-week';if(played>0)cls+=' has-games';
+  el.className=cls;
+  el.innerHTML=`<div class="wp-num">${wk.label.replace('WEEK ','W')}</div><div class="wp-sub">${played>0?played+'/'+total+' DONE':total+' GAMES'}</div>${played>0?'<div class="wp-dot"></div>':''}`;
+}
+
+function selectWeek(wi) {
+  selectedWeek = wi;
+  renderWeekPicker();
+  renderWeekDisplay();
+}
+
+const ORDINALS = ['1ST GAME','2ND GAME','3RD GAME','4TH GAME','5TH GAME','6TH GAME','7TH GAME'];
+
+function buildCourtLayout(wi) {
+  const wk = WEEKS[wi];
+  const court1 = wk.games.map((_,gi)=>gi).filter(gi=>gi%2===0);
+  const court2 = wk.games.map((_,gi)=>gi).filter(gi=>gi%2===1);
+  const buildCourtGames = (indices, courtNum) => indices.map((gi, slotIdx) => `
+    <div class="game-slot">
+      <div class="slot-label">
+        <span class="slot-ordinal ${courtNum===1?'c1-ord':'c2-ord'}">${ORDINALS[slotIdx]}</span>
+        <div class="slot-line"></div>
+      </div>
+      ${buildGameCard(wi, gi)}
+    </div>`).join('');
+  return `<div class="courts-layout">
+    <div class="court-col">
+      <div class="court-header c1">
+        <span class="court-icon">🏐</span>
+        <span class="court-name c1">COURT 1</span>
+        <span class="court-games-count">${court1.length} GAMES</span>
+      </div>
+      ${buildCourtGames(court1, 1)}
+    </div>
+    <div class="court-col">
+      <div class="court-header c2">
+        <span class="court-icon">🏐</span>
+        <span class="court-name c2">COURT 2</span>
+        <span class="court-games-count">${court2.length} GAMES</span>
+      </div>
+      ${buildCourtGames(court2, 2)}
+    </div>
+  </div>`;
+}
+
+function renderWeekDisplay() {
+  const wi=selectedWeek;const wk=WEEKS[wi];const container=document.getElementById('week-display');
+  const played=weekPlayed(wi);const total=wk.games.length;
+  const pct=total>0?Math.round(played/total*100):0;
+  const isChamp = wi >= 7;
+  const weekColor = isChamp ? 'var(--yellow)' : wi >= 4 ? 'var(--orange)' : 'var(--cyan)';
+  container.innerHTML=`<div class="week-display">
+    <div class="week-display-head">
+      <div class="wd-icon">${isChamp?'🏆':'🏐'}</div>
+      <div class="wd-info">
+        <div class="wd-title" style="color:${weekColor};text-shadow:0 0 20px ${weekColor}40">${wk.label}</div>
+        <div class="wd-note">7 GAMES · 2 COURTS · ALL 14 TEAMS PLAY${isChamp?' · CHAMPIONSHIP STRETCH':''}</div>
+      </div>
+      <div class="wd-progress">
+        <div class="wd-prog-text">
+          <div class="wd-played" style="color:${weekColor}">${played}</div>
+          <div class="wd-total">OF ${total} PLAYED</div>
+        </div>
+        <svg width="52" height="52" style="transform:rotate(-90deg)">
+          <circle cx="26" cy="26" r="20" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5"/>
+          <circle cx="26" cy="26" r="20" fill="none" stroke="${weekColor}" stroke-width="5"
+            stroke-dasharray="${2*Math.PI*20}" stroke-dashoffset="${2*Math.PI*20-(2*Math.PI*20*pct/100)}"
+            stroke-linecap="round" style="filter:drop-shadow(0 0 4px ${weekColor})"/>
+        </svg>
+      </div>
+    </div>
+    <div style="height:3px;background:linear-gradient(90deg,${weekColor},transparent)"></div>
+    ${buildCourtLayout(wi)}
+  </div>`;
+}
+
+
+// ─── TEAMS ───
+function renderTeamCards(){
+  document.getElementById('team-cards').innerHTML=TEAMS.map((t,i)=>{
+    const r=records[t.id];
+    return `<div class="team-card ${t.div==='east'?'ec':'wc'}">
+      <span class="tc-badge ${t.div==='east'?'eb':'wb'}">${t.div.toUpperCase()}</span>
+      <span class="tc-mc" style="--d:${(i*.18)%3}s">${t.mascot}</span>
+      <div class="tc-name">${t.name}</div><div class="tc-mname">${t.mascotName}</div>
+      <div class="tc-players">${t.players}</div>
+      <div class="tc-rec" id="tcr-${t.id}"><span class="tc-w">${r.w}</span><span class="tc-sep">—</span><span class="tc-l">${r.l}</span></div>
+    </div>`;
+  }).join('');
+}
+function updateTeamCards(){TEAMS.forEach(t=>{const el=document.getElementById(`tcr-${t.id}`);if(!el)return;const r=records[t.id];el.innerHTML=`<span class="tc-w">${r.w}</span><span class="tc-sep">—</span><span class="tc-l">${r.l}</span>`;});}
+
+// ─── TABS ───
+function switchTab(name){
+  ['standings','schedule','teams'].forEach(n=>{document.getElementById('tab-'+n).classList.toggle('active',n===name);});
+  document.querySelectorAll('.nav-btn').forEach((b,i)=>{b.classList.toggle('active',['standings','schedule','teams'][i]===name);});
+}
+
+// ─── RESET ───
+function resetAll(){
+  if(!confirm('Reset ALL game results and records?'))return;
+  TEAMS.forEach(t=>{records[t.id]={w:0,l:0};});
+  Object.keys(gameResults).forEach(k=>delete gameResults[k]);
+  renderStandings();renderWeekPicker();renderWeekDisplay();renderTeamCards();
+  saveToFirebase();
+  showToast('🔄 ALL RECORDS RESET');
+}
+
+// ─── TOAST ───
+let _tt;
+function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('show'),2400);}
+
+// ─── INIT ───
+loadFromFirebase(() => {
+  renderStandings();
+  renderWeekPicker();
+  renderWeekDisplay();
+  renderTeamCards();
+});
+</script>
+</body>
+</html>
