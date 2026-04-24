@@ -277,18 +277,8 @@ const TEAMS = [
 ];
 
 // ── WEEKS ──
-const WEEKS = [
-  {label:'WEEK 1',  date:'May 1',  champ:false, isBreak:false},
-  {label:'WEEK 2',  date:'May 8',  champ:false, isBreak:false},
-  {label:'SPRING BREAK', date:'May 15', champ:false, isBreak:true},
-  {label:'WEEK 3',  date:'May 22', champ:false, isBreak:false},
-  {label:'WEEK 4',  date:'May 29', champ:false, isBreak:false},
-  {label:'WEEK 5',  date:'Jun 5',  champ:false, isBreak:false},
-  {label:'WEEK 6',  date:'Jun 12', champ:false, isBreak:false},
-  {label:'WEEK 7',  date:'Jun 19', champ:false, isBreak:false},
-  {label:'CHAMP WK 1', date:'Jun 26', champ:true, isBreak:false},
-  {label:'CHAMP WK 2', date:'Jul 3', champ:true, isBreak:false},
-];
+// 15 weeks (one full round-robin cycle for 15 teams: 7 games + 1 bye per week)
+const WEEKS = Array.from({length:15}, (_,i) => ({label:`WEEK ${i+1}`}));
 
 // ── STATE ──
 // Helper: always use numeric IDs to avoid string/number key mismatches from Firebase
@@ -320,37 +310,31 @@ const SEEDED_RECORDS = {
 TEAMS.forEach(t => records[t.id] = {...SEEDED_RECORDS[t.id]});
 
 // ── ROUND ROBIN SCHEDULE GEN ──
+// 15 teams (odd) → circle method with 15 as the "dummy" bye slot
+// Each round: 7 real games + 1 bye. 15 rounds = full round-robin, no repeats.
 function genSchedule() {
-  const n = TEAMS.length; // 15
-  const ids = TEAMS.map(t => t.id);
-  // Circle method: rotate all except first
-  const rounds = [];
-  let arr = [...ids];
-  const totalRounds = n; // 15 rounds (odd: one bye per round)
-  for (let r = 0; r < totalRounds; r++) {
+  const ids = TEAMS.map(t => t.id); // 15 real team IDs
+  // Add dummy slot (null) to make it 16 = even for circle method
+  let arr = [...ids, null]; // 16 slots
+  const n = arr.length;     // 16
+  schedule = [];
+  for (let r = 0; r < 15; r++) {
     const games = [];
-    // pair up; with odd count, last element sits out (bye)
-    for (let i = 0; i < Math.floor(arr.length / 2); i++) {
-      games.push([arr[i], arr[arr.length - 1 - i]]);
+    let byeId = null;
+    for (let i = 0; i < n / 2; i++) {
+      const a = arr[i];
+      const b = arr[n - 1 - i];
+      if (a === null) { byeId = b; }
+      else if (b === null) { byeId = a; }
+      else { games.push([a, b]); }
     }
-    const bye = arr.length % 2 === 1 ? arr[Math.floor(arr.length / 2)] : null;
-    rounds.push({games, bye});
-    // rotate: keep arr[0] fixed, rotate the rest
+    schedule.push({ games, bye: byeId });
+    // Rotate all except arr[0] (fixed pivot)
     const fixed = arr[0];
     const rest = arr.slice(1);
     rest.unshift(rest.pop());
     arr = [fixed, ...rest];
   }
-  // Distribute rounds across play-weeks (skip break weeks)
-  const playWeeks = WEEKS.map((w,i)=>({...w, wi:i})).filter(w=>!w.isBreak);
-  // Assign ~1-2 rounds per play week
-  schedule = WEEKS.map((w, wi) => {
-    if (w.isBreak) return {wi, rounds:[]};
-    const playIdx = playWeeks.findIndex(pw => pw.wi === wi);
-    const r1 = rounds[playIdx * 2 % rounds.length];
-    const r2 = rounds[(playIdx * 2 + 1) % rounds.length];
-    return {wi, rounds:[r1, r2]};
-  });
 }
 
 // ── FIREBASE (REST) ──
@@ -490,8 +474,7 @@ function getGame(wi, gi) {
   // Returns [teamIdA, teamIdB] as Numbers for the given week+game index
   const weekData = schedule[wi];
   if (!weekData) return null;
-  const allGames = weekData.rounds.flatMap(r => r.games);
-  const g = allGames[gi];
+  const g = weekData.games[gi];
   if (!g) return null;
   return [Number(g[0]), Number(g[1])];
 }
@@ -612,15 +595,12 @@ function renderStandings() {
 
 function renderWeekPicker() {
   document.getElementById('week-grid').innerHTML = WEEKS.map((w,wi) => {
-    if (w.isBreak) return `<div class="week-pill break">${w.label}</div>`;
-    const cls = w.champ ? 'champ' : '';
     const active = wi === activeWeek ? 'active' : '';
-    return `<div class="week-pill ${cls} ${active}" onclick="selectWeek(${wi})">${w.label}<br><span style="font-size:9px;opacity:.6">${w.date}</span></div>`;
+    return `<div class="week-pill ${active}" onclick="selectWeek(${wi})">${w.label}</div>`;
   }).join('');
 }
 
 function selectWeek(wi) {
-  if (WEEKS[wi].isBreak) return;
   activeWeek = wi;
   renderWeekPicker();
   renderWeekDisplay();
@@ -628,17 +608,13 @@ function selectWeek(wi) {
 
 function renderWeekDisplay() {
   const w = WEEKS[activeWeek];
-  if (w.isBreak) {
-    document.getElementById('week-display').innerHTML = `<div class="break-card"><div class="break-icon">🌴</div><div class="break-title">SPRING BREAK — NO GAMES</div></div>`;
-    return;
-  }
   const weekData = schedule[activeWeek];
-  const allGames = weekData.rounds.flatMap(r => r.games);
-  const bye = weekData.rounds.find(r => r.bye !== null)?.bye ?? null;
+  const allGames = weekData.games;
+  const bye = weekData.bye;
 
   let html = `<div class="wd-header">
-    <div class="wd-title">${w.label}${w.champ?' 🏆':''}</div>
-    <div class="wd-note">7 GAMES · 2 COURTS · 1 BYE${w.champ?' · CHAMPIONSHIP':''}  — ${w.date}</div>
+    <div class="wd-title">${w.label}</div>
+    <div class="wd-note">7 GAMES · 2 COURTS · 1 BYE THIS WEEK</div>
   </div>
   <div class="games-grid">`;
 
