@@ -310,30 +310,28 @@ const SEEDED_RECORDS = {
 TEAMS.forEach(t => records[t.id] = {...SEEDED_RECORDS[t.id]});
 
 // ── ROUND ROBIN SCHEDULE GEN ──
-// 15 teams (odd) → circle method with 15 as the "dummy" bye slot
-// Each round: 7 real games + 1 bye. 15 rounds = full round-robin, no repeats.
+// 15-team circle method with rotating ghost (id=99) for byes.
+// 16-slot circle: ghost fixed at position 0, real teams rotate.
+// Each round: 7 real games + 1 bye. 15 rounds = all 105 unique pairs, zero repeats.
+// Every team gets exactly 1 bye across the full season.
 function genSchedule() {
-  const ids = TEAMS.map(t => t.id); // 15 real team IDs
-  // Add dummy slot (null) to make it 16 = even for circle method
-  let arr = [...ids, null]; // 16 slots
-  const n = arr.length;     // 16
+  let arr = [99,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]; // 16 slots, 99=ghost
+  const n = 16;
   schedule = [];
   for (let r = 0; r < 15; r++) {
     const games = [];
     let byeId = null;
-    for (let i = 0; i < n / 2; i++) {
-      const a = arr[i];
-      const b = arr[n - 1 - i];
-      if (a === null) { byeId = b; }
-      else if (b === null) { byeId = a; }
-      else { games.push([a, b]); }
+    for (let i = 0; i < n/2; i++) {
+      const a = arr[i], b = arr[n-1-i];
+      if (a === 99) byeId = b;
+      else if (b === 99) byeId = a;
+      else games.push([a, b]);
     }
     schedule.push({ games, bye: byeId });
-    // Rotate all except arr[0] (fixed pivot)
-    const fixed = arr[0];
+    // Rotate all except arr[0] (ghost stays fixed)
     const rest = arr.slice(1);
     rest.unshift(rest.pop());
-    arr = [fixed, ...rest];
+    arr = [99, ...rest];
   }
 }
 
